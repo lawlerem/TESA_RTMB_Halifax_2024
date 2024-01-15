@@ -1,0 +1,26 @@
+library(RTMB)
+par <- list(logLinf=0, logK=0, logSigma=0)
+dat <- read.table("files/length.tab", header=TRUE)
+l <- function(par){
+  getAll(par, dat)  
+  Linf <- exp(logLinf)
+  k <- exp(logK)
+  sigma <- exp(logSigma)
+  pred <-  log(Linf) + log(1-exp(-k*age))
+  ADREPORT(pred)
+  -sum(dnorm(log(length),pred,sd=sigma,log=TRUE))
+}
+obj <- MakeADFun(l,par, silent=TRUE)
+fit <- nlminb(obj$par,obj$fn,obj$gr)
+
+sdr <- sdreport(obj)
+pl <- as.list(sdr, "Est")
+plsd <- as.list(sdr, "Std")
+plr <- as.list(sdr, "Est", report=TRUE)
+plrsd <- as.list(sdr, "Std", report=TRUE)
+
+plot(dat)
+o<-order(dat$age)
+lines(dat$age[o],exp(plr$pred[o]), lwd=2, col="orange")
+lines(dat$age[o],exp(plr$pred[o]-2*plrsd$pred[o]), lwd=2, col="orange", lty="dotted")
+lines(dat$age[o],exp(plr$pred[o]+2*plrsd$pred[o]), lwd=2, col="orange", lty="dotted")
