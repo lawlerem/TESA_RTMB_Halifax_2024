@@ -2,26 +2,25 @@ library(RTMB)
 load("Fobs.RData")
 matplot(Fobs$year, log(Fobs$Fobs), xlab="Year", ylab="logF", pch=colnames(Fobs$Fobs))
 
-Fobs$fcormode <- 2
+Fobs$fcormode <- 1
 
 par <- list()
 par$logsdF <- rep(0,ncol(Fobs$Fobs))
-par$transRhoF <- if(Fobs$fcormode==0){numeric(0)}else{.1}
+par$transRhoF <- if(Fobs$fcormode==0){numeric(0)}else{15}
 par$logsdO <- 0
 par$logF <- matrix(0, nrow=nrow(Fobs$Fobs), ncol=ncol(Fobs$Fobs))
 
 f <- function(par){
   getAll(Fobs,par)
-
+    
   nrow <- nrow(Fobs)
   ncol <- ncol(Fobs)
-
+  
   sdF <- exp(logsdF)
-  sdO <- exp(logsdO)
-  rho <- 0
-
+  sdO <- exp(logsdO)  
+  
   jnll <- 0
-
+  
   SigmaF <- matrix(0, ncol, ncol)
 
   if(fcormode==0){
@@ -34,18 +33,18 @@ f <- function(par){
     for(i in 2:ncol){
       for(j in 1:(i-1)){
         SigmaF[i,j] <- rhoF*sdF[i]*sdF[j]
-        SigmaF[j,i] <- SigmaF[i,j]
+        SigmaF[j,i] <- SigmaF[i,j] 
       }
     }
   }
-
+  
   if(fcormode==2){
     diag(SigmaF) <- sdF*sdF
     rhoF <- 2*plogis(transRhoF[1])-1
     for(i in 2:ncol){
       for(j in 1:(i-1)){
         SigmaF[i,j] <- sdF[i]*sdF[j]*(rhoF^(i-j))
-        SigmaF[j,i] <- SigmaF[i,j]
+        SigmaF[j,i] <- SigmaF[i,j] 
       }
     }
   }
@@ -59,10 +58,10 @@ f <- function(par){
       jnll <- jnll - dnorm(log(Fobs[y,a]), logF[y,a], sdO, log=TRUE)
     }
   }
-  jnll
+  jnll    
 }
 
-obj <- MakeADFun(f, par, random="logF", map=list(logsdF=factor(rep(1,ncol(Fobs$Fobs)))))
+obj <- MakeADFun(f, par, random="logF", map=list(transRhoF=factor(NA), logsdF=factor(rep(1,ncol(Fobs$Fobs)))))
 fit <- nlminb(obj$par, obj$fn, obj$gr)
 sdr<-sdreport(obj)
 matplot(Fobs$year, as.list(sdr,"Est")$logF, type="l", add=TRUE)
@@ -72,3 +71,6 @@ matplot(Fobs$year, as.list(sdr,"Est")$logF, type="l", add=TRUE)
 ## CS: nll=278.1695
 ## AR: nll=230.7495
 ## parallel: nll ~ 485
+
+
+
