@@ -29,11 +29,11 @@ nll<- function(pars) {
     }
   }
 
-  x %~% dmvnorm(0, sigmax^2 * correlation_matrix)
+  x %~% dmvnorm(mu, sigmax^2 * correlation_matrix)
 
   sigmay<- exp(log_sigmay)
   value<- OBS(value)
-  value[!is.na(value)] %~% dnorm(mu + x[!is.na(value)], sigmay)
+  value[!is.na(value)] %~% dnorm(x[!is.na(value)], sigmay)
 }
 pars<- list(
   log_sigmax = 0,
