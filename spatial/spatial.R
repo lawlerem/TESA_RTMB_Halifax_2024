@@ -73,7 +73,7 @@ points(
   col = "black",
   bg = hcl.colors(12, "YlOrRd", rev = TRUE)[
     cut(
-      prediction_locations$value + opt$par[["mu"]],
+      prediction_locations$value,
       quantile(
         c(raster),
         seq(0, 1, length.out = 12)
